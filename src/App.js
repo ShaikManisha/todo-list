@@ -1,80 +1,78 @@
-import logo from "./logo.svg";
 import "./App.css";
 import { useState } from "react";
 import WheatherApp from "./components/WheatherApp";
+import { v4 as uuidv4 } from "uuid";
 
 function App() {
   const [inputData, setInputData] = useState("");
   const [tableData, setTableData] = useState([]);
-  const [editedIndex, setEditedIndex] = useState(null);
-  const [editedValue, setEditedValue] = useState("");
+  const [todoId, setTodoId] = useState(null);
 
   const handleChange = (e) => {
     setInputData(e.target.value);
   };
 
-  const handleClick = (index, value) => {
-    if (tableData[editedIndex] === editedIndex) {
-      const updatedData = [...tableData];
-      updatedData[editedIndex] = editedValue;
-      setTableData(updatedData);
-      setEditedIndex(null);
-      setEditedValue("");
-    } else if (inputData) {
-      setTableData([...tableData, inputData]);
+  const handleClick = () => {
+    if (inputData.trim() !== "") {
+      setTableData([...tableData, { id: uuidv4(), todos: inputData }]);
       setInputData("");
     }
   };
 
-  const handleEdit = (index, value) => {
-    setEditedIndex(index);
-    setEditedValue(value);
+  const handleEdit = (id, value) => {
+    setTodoId(id);
+    setInputData(value);
   };
 
-  const handleSaveEdit = () => {
-    if (editedIndex !== null && editedValue.trim() !== "") {
-      const updatedData = [...tableData];
-      updatedData[editedIndex] = editedValue;
+  const handleUpdate = () => {
+    if (todoId !== null) {
+      const updatedData = tableData.map((item) =>
+        item.id === todoId ? { ...item, todos: inputData } : item
+      );
       setTableData(updatedData);
-      setEditedIndex(null);
-      setEditedValue("");
+      setTodoId(null);
+      setInputData("");
     }
   };
 
-  const handleDelete = (index) => {
-    setTableData(tableData.filter((item, i) => i !== index));
+  const handleDelete = (id) => {
+    const newTableData = tableData.filter((item) => item.id !== id);
+    setTableData(newTableData);
   };
 
   return (
     <div className="App">
-      <input
-        type="text"
-        value={inputData || editedValue}
-        onChange={handleChange}
-      />
-      <button onClick={handleClick}>Submit</button>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Company</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tableData.map((item, index) => (
-            <tr key={index}>
-              <td>{editedIndex === index ? editedValue : item}</td>
-              <td>
-                {/* <button onClick={() => handleEdit(index, item)}>Edit</button> */}
-                <button onClick={() => handleDelete(index)}>Delete</button>
-              </td>
+      <input type="text" value={inputData} onChange={handleChange} />
+      {todoId !== null ? (
+        <button onClick={handleUpdate}>Update</button>
+      ) : (
+        <button onClick={handleClick}>Add</button>
+      )}
+      <div>
+        <table>
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      <br />
-      <WheatherApp />
+          </thead>
+          <tbody>
+            {tableData.map((item) => (
+              <tr key={item.id}>
+                <td>{item.todos}</td>
+                <td>
+                  <button onClick={() => handleEdit(item.id, item.todos)}>
+                    Edit
+                  </button>
+                  <button onClick={() => handleDelete(item.id)}>Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <br />
+      </div>
+      {/* <WheatherApp /> */}
     </div>
   );
 }
